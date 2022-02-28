@@ -25,8 +25,15 @@ class ExampleStateList(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         queryset = self.get_queryset()
+        example_id = self.kwargs['example_id']
+        example = Example.objects.get(pk=example_id)
+
         if queryset.exists():
+            example.annotations_approved_by = None
+            example.save()
             queryset.delete()
         else:
             example = get_object_or_404(Example, pk=self.kwargs["example_id"])
+            example.annotations_approved_by = self.request.user
+            example.save()
             serializer.save(example=example, confirmed_by=self.request.user)
